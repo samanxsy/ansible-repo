@@ -1,0 +1,28 @@
+---
+- name: Main Playbook
+  hosts: all
+  become: yes
+
+
+  tasks:
+    - name: Update package lists
+      apt:
+        update_cache: yes
+
+  roles:
+    - role: webserver
+      tags:
+        - webserver
+
+    - role: postgresdb
+      tags:
+        - postgresdb
+
+    - role: docker
+      tags:
+        - docker
+
+    - role: prometheus
+      tags:
+        - prometheus
+

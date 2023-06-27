@@ -1,0 +1,24 @@
+---
+- name: Install PostgreSQL
+  apt:
+    name: postgresql
+    state: present
+
+
+- name: Configure PostgreSQL
+  postgresql_user:
+    name: "{{ postgres_user }}"
+    password: "{{ postgres_password }}"
+    login_user: postgres
+    login_password: postgres
+    db: "{{ postgres_database }}"
+    state: present
+    encrypted: yes
+
+
+- name: Start PostgreSQL service
+  service:
+    name: postgresql
+    state: started
+    enables: yes
+

@@ -1,0 +1,56 @@
+---
+- name: Create Prometheus directories
+  become: yes
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ prometheus_install_dir }}"
+    - "{{ prometheus_config_dir }}"
+    - "{{ prometheus_data_dir }}"
+
+- name: Download Prometheus
+  become: yes
+  get_url:
+    url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/prometheus.tar.gz"
+    mode: 0644
+
+- name: Extract Prometheus archive
+  become: yes
+  unarchive:
+    src: "/tmp/prometheus.tar.gz"
+    dest: "{{ prometheus_install_dir }}"
+    remote_src: yes
+    creates: "{{ prometheus_install_dir }}/prometheus-{{ prometheus_version }}"
+
+- name: Rename Prometheus directory
+  become: yes
+  command: mv "{{ prometheus_install_dir }}/prometheus-{{ prometheus_version }}" "{{ prometheus_install_dir }}/prometheus"
+
+- name: Copy Prometheus configuration file
+  become: yes
+  template:
+    src: prometheus.yml.j2
+    dest: "{{ prometheus_config_dir }}/prometheus.yml"
+    mode: 0644
+
+- name: Create Prometheus service
+  become: yes
+  template:
+    src: prometheus.service.j2
+    dest: /etc/systemd/system/prometheus.service
+    mode: 0644
+
+- name: Reload systemd
+  become: yes
+  systemd:
+    daemon_reload: yes
+
+- name: Start Prometheus service
+  become: yes
+  service:
+    name: prometheus
+    state: started
+    enabled: yes
+
